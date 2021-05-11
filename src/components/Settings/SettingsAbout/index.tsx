@@ -7,6 +7,7 @@ import {
 } from '../../../../server/interfaces/api/settingsInterfaces';
 import globalMessages from '../../../i18n/globalMessages';
 import Error from '../../../pages/_error';
+import Alert from '../../Common/Alert';
 import Badge from '../../Common/Badge';
 import List from '../../Common/List';
 import LoadingSpinner from '../../Common/LoadingSpinner';
@@ -15,7 +16,7 @@ import Releases from './Releases';
 
 const messages = defineMessages({
   about: 'About',
-  overseerrinformation: 'Overseerr Information',
+  overseerrinformation: 'About Overseerr',
   version: 'Version',
   totalmedia: 'Total Media',
   totalrequests: 'Total Requests',
@@ -28,6 +29,8 @@ const messages = defineMessages({
   preferredmethod: 'Preferred',
   outofdate: 'Out of Date',
   uptodate: 'Up to Date',
+  runningDevelop:
+    'You are running the <code>develop</code> branch of Overseerr, which is only recommended for those contributing to development or assisting with bleeding-edge testing.',
 });
 
 const SettingsAbout: React.FC = () => {
@@ -56,11 +59,34 @@ const SettingsAbout: React.FC = () => {
       />
       <div className="section">
         <List title={intl.formatMessage(messages.overseerrinformation)}>
+          {data.version.startsWith('develop-') && (
+            <Alert
+              title={intl.formatMessage(messages.runningDevelop, {
+                code: function code(msg) {
+                  return <code className="bg-opacity-50">{msg}</code>;
+                },
+                GithubLink: function GithubLink(msg) {
+                  return (
+                    <a
+                      href="https://github.com/sct/overseerr"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-yellow-100 underline transition duration-300 hover:text-white"
+                    >
+                      {msg}
+                    </a>
+                  );
+                },
+              })}
+            />
+          )}
           <List.Item
             title={intl.formatMessage(messages.version)}
-            className="truncate"
+            className="flex flex-row items-center truncate"
           >
-            <code>{data.version.replace('develop-', '')}</code>
+            <code className="truncate">
+              {data.version.replace('develop-', '')}
+            </code>
             {status?.updateAvailable ? (
               <Badge badgeType="warning" className="ml-2">
                 {intl.formatMessage(messages.outofdate)}
@@ -93,7 +119,7 @@ const SettingsAbout: React.FC = () => {
               href="https://docs.overseerr.dev"
               target="_blank"
               rel="noreferrer"
-              className="text-indigo-500 hover:underline"
+              className="text-indigo-500 transition duration-300 hover:underline"
             >
               https://docs.overseerr.dev
             </a>
@@ -103,7 +129,7 @@ const SettingsAbout: React.FC = () => {
               href="https://github.com/sct/overseerr/discussions"
               target="_blank"
               rel="noreferrer"
-              className="text-indigo-500 hover:underline"
+              className="text-indigo-500 transition duration-300 hover:underline"
             >
               https://github.com/sct/overseerr/discussions
             </a>
@@ -113,7 +139,7 @@ const SettingsAbout: React.FC = () => {
               href="https://discord.gg/overseerr"
               target="_blank"
               rel="noreferrer"
-              className="text-indigo-500 hover:underline"
+              className="text-indigo-500 transition duration-300 hover:underline"
             >
               https://discord.gg/overseerr
             </a>
@@ -129,7 +155,7 @@ const SettingsAbout: React.FC = () => {
               href="https://github.com/sponsors/sct"
               target="_blank"
               rel="noreferrer"
-              className="text-indigo-500 hover:underline"
+              className="text-indigo-500 transition duration-300 hover:underline"
             >
               https://github.com/sponsors/sct
             </a>
@@ -142,7 +168,7 @@ const SettingsAbout: React.FC = () => {
               href="https://patreon.com/overseerr"
               target="_blank"
               rel="noreferrer"
-              className="text-indigo-500 hover:underline"
+              className="text-indigo-500 transition duration-300 hover:underline"
             >
               https://patreon.com/overseerr
             </a>
