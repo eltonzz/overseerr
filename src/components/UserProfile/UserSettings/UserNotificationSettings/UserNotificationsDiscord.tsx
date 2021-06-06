@@ -34,7 +34,7 @@ const UserNotificationsDiscord: React.FC = () => {
   const UserNotificationsDiscordSchema = Yup.object().shape({
     discordId: Yup.string()
       .when('types', {
-        is: (value: unknown) => !!value,
+        is: (types: number) => !!types,
         then: Yup.string()
           .nullable()
           .required(intl.formatMessage(messages.validationDiscordId)),
@@ -62,6 +62,9 @@ const UserNotificationsDiscord: React.FC = () => {
           await axios.post(`/api/v1/user/${user?.id}/settings/notifications`, {
             pgpKey: data?.pgpKey,
             discordId: values.discordId,
+            pushbulletAccessToken: data?.pushbulletAccessToken,
+            pushoverApplicationToken: data?.pushoverApplicationToken,
+            pushoverUserKey: data?.pushoverUserKey,
             telegramChatId: data?.telegramChatId,
             telegramSendSilently: data?.telegramSendSilently,
             notificationTypes: {

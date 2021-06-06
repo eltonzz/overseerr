@@ -9,25 +9,22 @@ import * as Yup from 'yup';
 import { UserSettingsNotificationsResponse } from '../../../../../server/interfaces/api/userSettingsInterfaces';
 import { useUser } from '../../../../hooks/useUser';
 import globalMessages from '../../../../i18n/globalMessages';
-import Badge from '../../../Common/Badge';
 import Button from '../../../Common/Button';
 import LoadingSpinner from '../../../Common/LoadingSpinner';
 import SensitiveInput from '../../../Common/SensitiveInput';
-import NotificationTypeSelector, {
-  ALL_NOTIFICATIONS,
-} from '../../../NotificationTypeSelector';
-import { OpenPgpLink } from '../../../Settings/Notifications/NotificationsEmail';
+import NotificationTypeSelector from '../../../NotificationTypeSelector';
 
 const messages = defineMessages({
-  emailsettingssaved: 'Email notification settings saved successfully!',
-  emailsettingsfailed: 'Email notification settings failed to save.',
-  pgpPublicKey: 'PGP Public Key',
-  pgpPublicKeyTip:
-    'Encrypt email messages using <OpenPgpLink>OpenPGP</OpenPgpLink>',
-  validationPgpPublicKey: 'You must provide a valid PGP public key',
+  pushbulletsettingssaved:
+    'Pushbullet notification settings saved successfully!',
+  pushbulletsettingsfailed: 'Pushbullet notification settings failed to save.',
+  pushbulletAccessToken: 'Access Token',
+  pushbulletAccessTokenTip:
+    'Create a token from your <PushbulletSettingsLink>Account Settings</PushbulletSettingsLink>',
+  validationPushbulletAccessToken: 'You must provide an access token',
 });
 
-const UserEmailSettings: React.FC = () => {
+const UserPushbulletSettings: React.FC = () => {
   const intl = useIntl();
   const { addToast } = useToasts();
   const router = useRouter();
@@ -36,13 +33,14 @@ const UserEmailSettings: React.FC = () => {
     user ? `/api/v1/user/${user?.id}/settings/notifications` : null
   );
 
-  const UserNotificationsEmailSchema = Yup.object().shape({
-    pgpKey: Yup.string()
-      .nullable()
-      .matches(
-        /-----BEGIN PGP PUBLIC KEY BLOCK-----.+-----END PGP PUBLIC KEY BLOCK-----/s,
-        intl.formatMessage(messages.validationPgpPublicKey)
-      ),
+  const UserNotificationsPushbulletSchema = Yup.object().shape({
+    pushbulletAccessToken: Yup.string().when('types', {
+      is: (types: number) => !!types,
+      then: Yup.string()
+        .nullable()
+        .required(intl.formatMessage(messages.validationPushbulletAccessToken)),
+      otherwise: Yup.string().nullable(),
+    }),
   });
 
   if (!data && !error) {
@@ -52,31 +50,31 @@ const UserEmailSettings: React.FC = () => {
   return (
     <Formik
       initialValues={{
-        pgpKey: data?.pgpKey,
-        types: data?.notificationTypes.email ?? ALL_NOTIFICATIONS,
+        pushbulletAccessToken: data?.pushbulletAccessToken,
+        types: data?.notificationTypes.pushbullet ?? 0,
       }}
-      validationSchema={UserNotificationsEmailSchema}
+      validationSchema={UserNotificationsPushbulletSchema}
       enableReinitialize
       onSubmit={async (values) => {
         try {
           await axios.post(`/api/v1/user/${user?.id}/settings/notifications`, {
-            pgpKey: values.pgpKey,
+            pgpKey: data?.pgpKey,
             discordId: data?.discordId,
-            pushbulletAccessToken: data?.pushbulletAccessToken,
+            pushbulletAccessToken: values.pushbulletAccessToken,
             pushoverApplicationToken: data?.pushoverApplicationToken,
             pushoverUserKey: data?.pushoverUserKey,
             telegramChatId: data?.telegramChatId,
             telegramSendSilently: data?.telegramSendSilently,
             notificationTypes: {
-              email: values.types,
+              pushbullet: values.types,
             },
           });
-          addToast(intl.formatMessage(messages.emailsettingssaved), {
+          addToast(intl.formatMessage(messages.pushbulletsettingssaved), {
             appearance: 'success',
             autoDismiss: true,
           });
         } catch (e) {
-          addToast(intl.formatMessage(messages.emailsettingsfailed), {
+          addToast(intl.formatMessage(messages.pushbulletsettingsfailed), {
             appearance: 'error',
             autoDismiss: true,
           });
@@ -97,33 +95,43 @@ const UserEmailSettings: React.FC = () => {
         return (
           <Form className="section">
             <div className="form-row">
-              <label htmlFor="pgpKey" className="text-label">
-                <span className="mr-2">
-                  {intl.formatMessage(messages.pgpPublicKey)}
-                </span>
-                <Badge badgeType="danger">
-                  {intl.formatMessage(globalMessages.advanced)}
-                </Badge>
-                <span className="label-tip">
-                  {intl.formatMessage(messages.pgpPublicKeyTip, {
-                    OpenPgpLink: OpenPgpLink,
-                  })}
-                </span>
+              <label htmlFor="pushbulletAccessToken" className="text-label">
+                {intl.formatMessage(messages.pushbulletAccessToken)}
+                <span className="label-required">*</span>
+                {data?.pushbulletAccessToken && (
+                  <span className="label-tip">
+                    {intl.formatMessage(messages.pushbulletAccessTokenTip, {
+                      PushbulletSettingsLink: function PushbulletSettingsLink(
+                        msg
+                      ) {
+                        return (
+                          <a
+                            href="https://www.pushbullet.com/#settings/account"
+                            className="text-white transition duration-300 hover:underline"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {msg}
+                          </a>
+                        );
+                      },
+                    })}
+                  </span>
+                )}
               </label>
               <div className="form-input">
                 <div className="form-input-field">
                   <SensitiveInput
                     as="field"
-                    type="textarea"
-                    id="pgpKey"
-                    name="pgpKey"
-                    rows="10"
-                    className="font-mono text-xs"
+                    id="pushbulletAccessToken"
+                    name="pushbulletAccessToken"
+                    type="text"
                   />
                 </div>
-                {errors.pgpKey && touched.pgpKey && (
-                  <div className="error">{errors.pgpKey}</div>
-                )}
+                {errors.pushbulletAccessToken &&
+                  touched.pushbulletAccessToken && (
+                    <div className="error">{errors.pushbulletAccessToken}</div>
+                  )}
               </div>
             </div>
             <NotificationTypeSelector
@@ -161,4 +169,4 @@ const UserEmailSettings: React.FC = () => {
   );
 };
 
-export default UserEmailSettings;
+export default UserPushbulletSettings;
